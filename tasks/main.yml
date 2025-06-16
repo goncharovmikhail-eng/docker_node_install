@@ -95,16 +95,16 @@
     job: "{{ docker_prune_script }} > /tmp/prune_sh.log 2>&1"
     state: present
 
-# - name: create motd
-#   template:
-#     src: motd.sh.j2
-#     dest: "{{ docker_notify_script }}"
-#     owner: root
-#     group: root
-#     mode: '0755'
-#    # даем возможность его править
-#     force: false
-#     ignore_errors: true
+- name: create motd
+  template:
+    src: motd.sh.j2
+    dest: "{{ docker_notify_script }}"
+    owner: root
+    group: root
+    mode: '0755'
+   # даем возможность его править
+    force: false
+    ignore_errors: true
 
 - name: backup containers
   include_tasks: backup.yml
