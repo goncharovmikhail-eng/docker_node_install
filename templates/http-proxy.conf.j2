@@ -1,0 +1,5 @@
+[Service]
+{% for proxy in docker_proxies %}
+Environment="{{ proxy.protocol | upper }}_PROXY=http://{{ proxy.host }}:{{ proxy.port }}"
+{# Environment="{{ proxy.protocol | upper }}_PROXY={{ proxy.protocol }}://{{ ansible_docker0.ipv4.address }}:{{ proxy.port }}/"#}
+{% endfor %}

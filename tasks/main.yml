@@ -1,0 +1,113 @@
+---
+- name: remove old versions
+  ansible.builtin.package:
+    name: "{{ docker_upgrade_clean_list }}"
+    state: absent
+  when:
+    - docker_upgrade_enable
+
+- name: install needed packages
+  ansible.builtin.package:
+    name: "{{ docker_pkgs }}"
+    # state: fixed
+
+- name: create dir for docker projects
+  file:
+    path: "{{ docker_project_dir }}"
+    state: directory
+    mode: '0777'
+    owner: root
+    group: root
+
+- name: setup deb like
+  include_tasks: deb.yml
+  when:
+    - ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  
+- name: setup redos like
+  include_tasks: redos.yml
+  when:
+    - ansible_distribution == "RED"
+
+- name: create dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  with_items:
+    - "{{ docker_daemon_dir }}"
+
+- name: create config file
+  template:
+    src: daemon.json.j2
+    dest: "{{ docker_daemon_config }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart docker
+
+- name: create override dir
+  file:
+    path: "{{ docker_service_override_dir }}"
+    state: directory
+    mode: '0755'
+  when:
+    - docker_proxies | length > 0
+
+- name: override proxy conf
+  template:
+    src: http-proxy.conf.j2
+    dest: "{{ docker_service_override_dir }}/http-proxy.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  when:
+    - docker_proxies | length > 0
+  notify:
+    - restart docker
+
+- name: delete http file
+  ansible.builtin.file:
+    path: "{{ docker_service_override_dir }}/http-proxy.conf"
+    state: absent
+  when:
+    - docker_proxies | length == 0
+  notify:
+    - restart docker
+
+- name: create prune script
+  template:
+    src: prune.sh.j2
+    dest: "{{ docker_prune_script }}"
+    owner: root
+    group: root
+    mode: '0755'
+    force: false
+
+- name: cron prune script
+  cron:
+    name: "prune docker objects"
+    minute: "30"
+    hour: "3"
+    weekday : "6"
+    job: "{{ docker_prune_script }} > /tmp/prune_sh.log 2>&1"
+    state: present
+
+# - name: create motd
+#   template:
+#     src: motd.sh.j2
+#     dest: "{{ docker_notify_script }}"
+#     owner: root
+#     group: root
+#     mode: '0755'
+#    # даем возможность его править
+#     force: false
+#     ignore_errors: true
+
+- name: backup containers
+  include_tasks: backup.yml
+  when: docker_backup
+  tags:
+    - docker_backup

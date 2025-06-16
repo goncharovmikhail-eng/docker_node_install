@@ -1,0 +1,29 @@
+---
+- name: Install required packages for Docker installation  
+  yum:  
+    name:  
+      - yum-utils  
+      - device-mapper-persistent-data  
+      - lvm2  
+    state: present  
+
+- name: Add Docker repository  
+  yum_repository:  
+    name: docker  
+    description: Docker Repository  
+    baseurl: https://download.docker.com/linux/centos/7/x86_64/stable  
+    gpgcheck: yes  
+    gpgkey: https://download.docker.com/linux/centos/gpg  
+    enabled: yes  
+
+- name: Update yum and install docker  
+  yum:  
+    name: "{{ docker_packages }}"
+    state: latest  
+    update_cache: yes
+
+- name: Запустить демон Docker  
+  systemd:  
+    name: docker.service
+    state: started  
+    enabled: true
