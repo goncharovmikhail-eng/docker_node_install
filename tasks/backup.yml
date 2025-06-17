@@ -1,21 +1,4 @@
 ---
-# Если docker_projects не определен, то выполняем следующие задачи в блоке:
-- name: Get names of containers.
-  block:
-    - name: Get facts about Docker host and list containers
-      community.docker.docker_host_info:
-        containers: true
-      register: result
-
-    - name: Extract container names without '/'
-      set_fact:
-        docker_projects: "{{ result.containers | map(attribute='Names') | map('first') | map('regex_replace', '^/', '') }}"
-
-    - name: Print the container names
-      ansible.builtin.debug:
-        var: docker_projects
-  when: docker_projects is not defined
-
 - name: Create new image script
   template:
     src: new_images.sh.j2
@@ -23,8 +6,6 @@
     owner: root
     group: root
     mode: '0755'
-  vars:
-    containers: "{{ docker_projects }}"
 
 - name: Set up cron job for backup
   cron:

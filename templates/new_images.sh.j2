@@ -1,6 +1,25 @@
 #!/bin/bash
 
-{% for container in containers %}
-  echo "Creating new image from container {{ container }}..."
-  docker commit {{ container }} {{ container }}:latest
-{% endfor %}
+# Настройки
+DOCKER_USERNAME="{{ docker_username }}"
+REPO_NAME="{{ docker_reponame }}"
+REPO="${DOCKER_USERNAME}/${REPO_NAME}"
+
+# Получаем все запущенные контейнеры
+CONTAINERS=$(docker ps -q)
+
+if [ -z "$CONTAINERS" ]; then
+    echo "[$(date)] Нет запущенных контейнеров для бэкапа."
+    exit 0
+fi
+
+for CONTAINER_ID in $CONTAINERS; do
+    NAME=$(docker inspect --format='{{.Name}}' "$CONTAINER_ID" | sed 's|/||')
+    IMAGE="${REPO}:${NAME}"
+
+    echo "[$(date)] Бэкапим $NAME → $IMAGE"
+    docker commit "$CONTAINER_ID" "$IMAGE"
+    docker push "$IMAGE"
+done
+
+echo "[$(date)] Все контейнеры успешно забэкаплены."

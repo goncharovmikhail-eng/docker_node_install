@@ -38,3 +38,6 @@ docker_prune_script: /opt/prune.sh
 
 docker_notify_script: /etc/profile.d/docker.sh
 
+# Переопределить! 
+docker_username: "goncharovmikhail"
+docker_reponame: "something"
