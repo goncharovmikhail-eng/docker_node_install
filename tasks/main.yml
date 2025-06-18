@@ -1,4 +1,9 @@
 ---
+- name: before install
+  include_tasks: before_install.yml
+  tags:
+    - update
+
 - name: remove old versions
   ansible.builtin.package:
     name: "{{ docker_upgrade_clean_list }}"

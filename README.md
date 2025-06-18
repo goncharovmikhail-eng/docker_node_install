@@ -28,3 +28,7 @@
 ### 5. Правила использования в inventory
 В вашем `inventory` необходимо указать следующие параметры:
 
+Важно, если использовали (main_account)[https://github.com/goncharovmikhail-eng/main_account], то используйте перед запуском плейбука.
+```bash
+ln -s ~/main_account/alias.sh ~/header_project/roles/docker_worker_install/files/alias.sh
+```
